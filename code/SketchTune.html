@@ -8,6 +8,17 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
 </head>
 <body>
+  <nav class="main-nav">
+    <div class="nav-content">
+      <div class="logo">ST</div>
+      <ul class="nav-links">
+        <li><a href="#" id="nav-home" class="active">Home</a></li>
+        <li><a href="#" id="nav-musics">Musics Available</a></li>
+        <li><a href="#" id="nav-trending">Trending Musics</a></li>
+      </ul>
+    </div>
+  </nav>
+
   <header>
     <div class="header-content">
       <div class="title-container">
@@ -21,15 +32,23 @@
     </div>
   </header>
 
-  <main class="container">
+  <main id="home-view" class="container">
     <!-- Drawing Workspace -->
     <section class="card workspace">
       <h2>✏️ Sketch Your Emotion</h2>
       
       <div class="toolbar">
         <div class="tools">
-          <button id="pen-btn" class="btn active">Pen</button>
-          <button id="eraser-btn" class="btn">Eraser</button>
+          <button id="pen-btn" class="btn active" title="Pen">✏️</button>
+          <button id="eraser-btn" class="btn" title="Eraser">🧽</button>
+          <button id="fill-btn" class="btn" title="Fill Bucket">🪣</button>
+          <button id="rect-btn" class="btn" title="Rectangle">🟩</button>
+          <button id="circle-btn" class="btn" title="Circle">⭕</button>
+          
+          <div class="tool-options">
+            <input type="color" id="color-picker" value="#000000" class="color-picker" title="Choose Color">
+            <input type="range" id="brush-size" min="1" max="50" value="4" class="brush-size" title="Brush Size">
+          </div>
         </div>  
         <button id="clear-btn" class="btn btn-danger">Clear</button>
       </div>
@@ -68,6 +87,32 @@
             <!-- Populated dynamically via JS -->
           </ul>
         </div>
+      </div>
+    </section>
+  </main>
+
+  <main id="musics-view" class="container hidden">
+    <section class="card full-width" style="width: 100%;">
+      <h2>🎵 All Musics Available</h2>
+      <p style="color: var(--text-muted); margin-bottom: 2rem;">A complete library of all tracks available in Sketch Tunes.</p>
+      
+      <div class="playlist" style="width: 100%; max-width: 800px; margin: 0 auto;">
+        <ul id="all-songs-list" class="song-list">
+          <!-- Populated by JS -->
+        </ul>
+      </div>
+    </section>
+  </main>
+
+  <main id="trending-view" class="container hidden">
+    <section class="card full-width" style="width: 100%;">
+      <h2>🔥 Trending Musics</h2>
+      <p style="color: var(--text-muted); margin-bottom: 2rem;">See what other artists are listening to right now.</p>
+      
+      <div class="playlist" style="width: 100%; max-width: 800px; margin: 0 auto;">
+        <ul id="trending-songs-list" class="song-list">
+          <!-- Populated by JS -->
+        </ul>
       </div>
     </section>
   </main>
