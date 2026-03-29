@@ -59,32 +59,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const allViews = [homeView, musicsView, trendingView];
 
   // Emotion Analysis & Submission
-  const placeholderState = document.getElementById('placeholder-state');
-  const resultsContent = document.getElementById('results-content');
-  const loader = document.getElementById('loader');
   const submitBtn = document.getElementById('submit-btn');
-
-  submitBtn.addEventListener('click', () => {
-    if (strokes.length === 0) {
-      alert("Please draw something first!");
-      return;
-    }
-
-    // Show loading state
-    placeholderState.classList.add('hidden');
-    resultsContent.classList.add('hidden');
-    loader.classList.remove('hidden');
-    
-    // Show scan line on canvas
-    const scanOverlay = document.getElementById('scan-overlay');
-    scanOverlay.classList.remove('hidden');
-
-    // Simulate analysis delay
-    setTimeout(() => {
-      scanOverlay.classList.add('hidden');
-      analyzeEmotion(strokes);
-    }, 2000);
-  });
 
   function switchView(activeNav, activeView) {
     allNavs.forEach(nav => nav.classList.remove('active'));
@@ -616,7 +591,7 @@ document.addEventListener('DOMContentLoaded', () => {
     timeCurrent.textContent = formatTime(songProgress);
   });
 
-  // Auth Modal Logic
+  // User Profile & Authentication Logic
   const authModal = document.getElementById('auth-modal');
   const loginBtn = document.getElementById('login-btn');
   const signupBtn = document.getElementById('signup-btn');
@@ -626,58 +601,214 @@ document.addEventListener('DOMContentLoaded', () => {
   const authSwitchText = document.getElementById('auth-switch-text');
   const authSwitchLink = document.getElementById('auth-switch-link');
   const authForm = document.getElementById('auth-form');
+  const nameGroup = document.getElementById('name-group');
+  const nameInput = document.getElementById('name');
+  const emailInput = document.getElementById('email');
+  const passwordInput = document.getElementById('password');
+
+  const authButtonsContainer = document.getElementById('auth-buttons');
+  const userProfileContainer = document.getElementById('user-profile');
+  const profileAvatar = document.getElementById('profile-avatar');
+  const profileDropdown = document.getElementById('profile-dropdown');
+  const profileName = document.getElementById('profile-name');
+  const profileEmail = document.getElementById('profile-email');
+  const profileImg = document.getElementById('profile-img');
+  const profileInitial = document.getElementById('profile-initial');
+  const logoutBtn = document.getElementById('logout-btn');
+  const changePhotoInput = document.getElementById('change-photo-input');
+  
+  // Social Logins
+  const socialBtns = document.querySelectorAll('.social-btn');
+  socialBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const provider = btn.textContent.trim().replace('Continue with ', '');
+      const defaultEmail = `user@${provider.toLowerCase()}.com`;
+      loginUser({ name: `${provider} User`, email: defaultEmail, photo: null, password: 'nopassword' });
+      closeModal();
+    });
+  });
 
   let isLoginView = true;
 
+  // Local state
+  let currentUser = JSON.parse(localStorage.getItem('currentUser')) || null;
+  let users = JSON.parse(localStorage.getItem('users')) || [];
+
+  function updateProfileUI() {
+    if (currentUser) {
+      if (authButtonsContainer) authButtonsContainer.classList.add('hidden');
+      if (userProfileContainer) userProfileContainer.classList.remove('hidden');
+      if (profileName) profileName.textContent = currentUser.name || 'User';
+      if (profileEmail) profileEmail.textContent = currentUser.email;
+
+      if (currentUser.photo) {
+        if (profileImg) {
+          profileImg.src = currentUser.photo;
+          profileImg.style.display = 'block';
+        }
+        if (profileInitial) profileInitial.style.display = 'none';
+      } else {
+        if (profileImg) profileImg.style.display = 'none';
+        if (profileInitial) {
+          profileInitial.style.display = 'flex';
+          profileInitial.textContent = (currentUser.name && currentUser.name.charAt(0).toUpperCase()) || 'U';
+        }
+      }
+    } else {
+      if (authButtonsContainer) authButtonsContainer.classList.remove('hidden');
+      if (userProfileContainer) userProfileContainer.classList.add('hidden');
+      if (profileDropdown) profileDropdown.classList.add('hidden');
+    }
+  }
+
+  // Initial Check
+  updateProfileUI();
+
+  if (profileAvatar) {
+    profileAvatar.addEventListener('click', () => {
+      profileDropdown.classList.toggle('hidden');
+    });
+  }
+
+  // Close dropdown on outside click
+  document.addEventListener('click', (e) => {
+    if (userProfileContainer && !userProfileContainer.contains(e.target)) {
+      if (profileDropdown) profileDropdown.classList.add('hidden');
+    }
+  });
+
+  if (logoutBtn) {
+    logoutBtn.addEventListener('click', () => {
+      currentUser = null;
+      localStorage.removeItem('currentUser');
+      updateProfileUI();
+    });
+  }
+
+  if (changePhotoInput) {
+    changePhotoInput.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          currentUser.photo = event.target.result;
+          localStorage.setItem('currentUser', JSON.stringify(currentUser));
+          
+          const userIndex = users.findIndex(u => u.email === currentUser.email);
+          if (userIndex !== -1) {
+            users[userIndex].photo = currentUser.photo;
+            localStorage.setItem('users', JSON.stringify(users));
+          }
+          updateProfileUI();
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+  }
+
+  function loginUser(userData) {
+    currentUser = userData;
+    localStorage.setItem('currentUser', JSON.stringify(currentUser));
+    
+    if (!users.find(u => u.email === currentUser.email)) {
+      users.push(currentUser);
+      localStorage.setItem('users', JSON.stringify(users));
+    }
+    updateProfileUI();
+  }
+
   function setAuthView(isLogin) {
     isLoginView = isLogin;
+    if (nameInput) nameInput.value = '';
+    if (emailInput) emailInput.value = '';
+    if (passwordInput) passwordInput.value = '';
+    
     if (isLogin) {
-      modalTitle.textContent = 'Log In';
-      formSubmitBtn.textContent = 'Log In';
-      authSwitchText.textContent = "Don't have an account?";
-      authSwitchLink.textContent = 'Sign Up';
+      if (modalTitle) modalTitle.textContent = 'Log In';
+      if (formSubmitBtn) formSubmitBtn.textContent = 'Log In';
+      if (authSwitchText) authSwitchText.textContent = "Don't have an account?";
+      if (authSwitchLink) authSwitchLink.textContent = 'Sign Up';
+      if (nameGroup) nameGroup.classList.add('hidden');
+      if (nameInput) nameInput.removeAttribute('required');
     } else {
-      modalTitle.textContent = 'Sign Up';
-      formSubmitBtn.textContent = 'Sign Up';
-      authSwitchText.textContent = "Already have an account?";
-      authSwitchLink.textContent = 'Log In';
+      if (modalTitle) modalTitle.textContent = 'Sign Up';
+      if (formSubmitBtn) formSubmitBtn.textContent = 'Sign Up';
+      if (authSwitchText) authSwitchText.textContent = "Already have an account?";
+      if (authSwitchLink) authSwitchLink.textContent = 'Log In';
+      if (nameGroup) nameGroup.classList.remove('hidden');
+      if (nameInput) nameInput.setAttribute('required', 'required');
     }
   }
 
   function openModal(isLogin) {
-    setAuthView(isLogin);
-    authModal.classList.remove('hidden');
-    document.body.style.overflow = 'hidden'; // Prevent background scrolling
+    if (authModal) {
+      setAuthView(isLogin);
+      authModal.classList.remove('hidden');
+      document.body.style.overflow = 'hidden';
+    }
   }
 
   function closeModal() {
-    authModal.classList.add('hidden');
-    document.body.style.overflow = '';
+    if (authModal) {
+      authModal.classList.add('hidden');
+      document.body.style.overflow = '';
+    }
   }
 
-  loginBtn.addEventListener('click', () => openModal(true));
-  signupBtn.addEventListener('click', () => openModal(false));
-  closeModalBtn.addEventListener('click', closeModal);
+  if (loginBtn) loginBtn.addEventListener('click', () => openModal(true));
+  if (signupBtn) signupBtn.addEventListener('click', () => openModal(false));
+  if (closeModalBtn) closeModalBtn.addEventListener('click', closeModal);
 
-  // Close when clicking outside of modal content
-  authModal.addEventListener('click', (e) => {
-    if (e.target === authModal) {
-      closeModal();
-    }
-  });
+  if (authModal) {
+    authModal.addEventListener('click', (e) => {
+      if (e.target === authModal) {
+        closeModal();
+      }
+    });
+  }
 
-  authSwitchLink.addEventListener('click', (e) => {
-    e.preventDefault();
-    setAuthView(!isLoginView);
-  });
+  if (authSwitchLink) {
+    authSwitchLink.addEventListener('click', (e) => {
+      e.preventDefault();
+      setAuthView(!isLoginView);
+    });
+  }
 
-  authForm.addEventListener('submit', (e) => {
-    e.preventDefault();
-    // In a real app, this would handle actual authentication
-    const action = isLoginView ? 'logged in' : 'signed up';
-    alert(`Successfully ${action}!`);
-    closeModal();
-  });
+  if (authForm) {
+    authForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const email = emailInput ? emailInput.value.trim() : '';
+      const password = passwordInput ? passwordInput.value : '';
+      
+      if (isLoginView) {
+        const userIndex = users.findIndex(u => u.email === email);
+        if (userIndex === -1) {
+          alert("You don't have an account. Redirecting to sign up page.");
+          setAuthView(false);
+        } else {
+          const foundUser = users[userIndex];
+          if (foundUser.password === password) {
+            loginUser(foundUser);
+            closeModal();
+          } else {
+            alert('Incorrect password!');
+          }
+        }
+      } else {
+        if (users.find(u => u.email === email)) {
+          alert("You already have an account. Redirecting to log in page.");
+          setAuthView(true);
+        } else {
+          const name = nameInput ? nameInput.value.trim() : 'User';
+          const newUser = { email, password, name, photo: null };
+          users.push(newUser);
+          localStorage.setItem('users', JSON.stringify(users));
+          loginUser(newUser);
+          closeModal();
+        }
+      }
+    });
+  }
 
   function analyzeEmotion() {
     if (strokes.length === 0) return 'neutral';
@@ -743,18 +874,35 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Submit Logic
   submitBtn.addEventListener('click', () => {
-    // 1. Get image data from canvas
-    const imageData = canvas.toDataURL('image/png');
-    
-    // In a real app, this would be a fetch POST request to the backend.
-    
+    if (strokes.length === 0) {
+      alert("Please draw something first!");
+      return;
+    }
+
+    if (!currentUser) {
+      let guestUsages = parseInt(localStorage.getItem('guestUsages') || '0');
+      if (guestUsages >= 3) {
+        alert("You've reached the maximum guest limits (3 times). Please log in or sign up to continue.");
+        openModal(true);
+        return;
+      }
+      guestUsages++;
+      localStorage.setItem('guestUsages', guestUsages.toString());
+    }
+
     // UI Transitions
     initialView.classList.add('hidden');
     resultView.classList.add('hidden');
     loadingView.classList.remove('hidden');
+    
+    // Show scan line on canvas
+    const scanOverlay = document.getElementById('scan-overlay');
+    if (scanOverlay) scanOverlay.classList.remove('hidden');
 
-    // Simulate Network Request and ML processing (1.5 seconds delay)
+    // Simulate Network Request and ML processing (2 seconds delay)
     setTimeout(() => {
+      if (scanOverlay) scanOverlay.classList.add('hidden');
+
       // Use heuristic stroke analysis for accurate prediction
       const predictedEmotion = analyzeEmotion();
       
@@ -773,6 +921,9 @@ document.addEventListener('DOMContentLoaded', () => {
       playlist.forEach(song => {
         const li = document.createElement('li');
         li.className = 'song-item';
+        const safeTitle = song.title.replace(/'/g, "\\'");
+        const safeArtist = song.artist.replace(/'/g, "\\'");
+        li.setAttribute('onclick', `playGlobalSong('${safeTitle}', '${safeArtist}')`);
         li.innerHTML = `
           <div class="song-icon">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: white;"><path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle></svg>
@@ -787,7 +938,6 @@ document.addEventListener('DOMContentLoaded', () => {
         `;
         songList.appendChild(li);
       });
-      
     }, 2000);
   });
 });
