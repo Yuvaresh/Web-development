@@ -22,6 +22,20 @@ document.addEventListener('DOMContentLoaded', () => {
   let startY = 0;
   let snapshot = null;
 
+  let historyState = [];
+  let historyIndex = -1;
+
+  function saveState() {
+    if (historyIndex < historyState.length - 1) {
+      historyState = historyState.slice(0, historyIndex + 1);
+    }
+    historyState.push(ctx.getImageData(0, 0, canvas.width, canvas.height));
+    historyIndex++;
+  }
+  
+  // Save initial blank state
+  setTimeout(saveState, 50);
+
   // Navigations
   const navHome = document.getElementById('nav-home');
   const navMusics = document.getElementById('nav-musics');
@@ -33,6 +47,34 @@ document.addEventListener('DOMContentLoaded', () => {
   
   const allNavs = [navHome, navMusics, navTrending];
   const allViews = [homeView, musicsView, trendingView];
+
+  // Emotion Analysis & Submission
+  const placeholderState = document.getElementById('placeholder-state');
+  const resultsContent = document.getElementById('results-content');
+  const loader = document.getElementById('loader');
+  const submitBtn = document.getElementById('submit-btn');
+
+  submitBtn.addEventListener('click', () => {
+    if (strokes.length === 0) {
+      alert("Please draw something first!");
+      return;
+    }
+
+    // Show loading state
+    placeholderState.classList.add('hidden');
+    resultsContent.classList.add('hidden');
+    loader.classList.remove('hidden');
+    
+    // Show scan line on canvas
+    const scanOverlay = document.getElementById('scan-overlay');
+    scanOverlay.classList.remove('hidden');
+
+    // Simulate analysis delay
+    setTimeout(() => {
+      scanOverlay.classList.add('hidden');
+      analyzeEmotion(strokes);
+    }, 2000);
+  });
 
   function switchView(activeNav, activeView) {
     allNavs.forEach(nav => nav.classList.remove('active'));
@@ -52,12 +94,95 @@ document.addEventListener('DOMContentLoaded', () => {
   const rectBtn = document.getElementById('rect-btn');
   const circleBtn = document.getElementById('circle-btn');
   const clearBtn = document.getElementById('clear-btn');
-  const submitBtn = document.getElementById('submit-btn');
   const colorPicker = document.getElementById('color-picker');
   const brushSize = document.getElementById('brush-size');
   
+  const fullscreenBtn = document.getElementById('fullscreen-btn');
+  const workspaceSect = document.querySelector('.workspace');
+  const colorSwatches = document.querySelectorAll('.color-swatch');
+
+  const undoBtn = document.getElementById('undo-btn');
+  const downloadBtn = document.getElementById('download-btn');
   const toolsBtns = { 'pen': penBtn, 'eraser': eraserBtn, 'fill': fillBtn, 'rect': rectBtn, 'circle': circleBtn };
+
+  undoBtn.addEventListener('click', () => {
+    if (historyIndex <= 0) {
+      // Clear to blank
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      historyIndex = 0;
+      historyState = [ctx.getImageData(0, 0, canvas.width, canvas.height)];
+      strokes = [];
+    } else {
+      historyIndex--;
+      ctx.putImageData(historyState[historyIndex], 0, 0);
+      strokes.pop();
+    }
+  });
+
+  downloadBtn.addEventListener('click', () => {
+    const link = document.createElement('a');
+    link.download = 'sketch-tunes-masterpiece.png';
+    link.href = canvas.toDataURL();
+    link.click();
+  });
+
+  const themeToggleBtn = document.getElementById('theme-toggle');
+  let isDarkMode = true;
+
+  themeToggleBtn.addEventListener('click', () => {
+    isDarkMode = !isDarkMode;
+    themeToggleBtn.style.transform = 'rotate(180deg) scale(0.5)';
+    themeToggleBtn.style.opacity = '0';
+    
+    setTimeout(() => {
+      if (isDarkMode) {
+        document.documentElement.removeAttribute('data-theme');
+        themeToggleBtn.textContent = '🌙';
+      } else {
+        document.documentElement.setAttribute('data-theme', 'light');
+        themeToggleBtn.textContent = '☀️';
+      }
+      
+      themeToggleBtn.style.transform = 'rotate(0deg) scale(1)';
+      themeToggleBtn.style.opacity = '1';
+    }, 250);
+  });
   
+  // Fullscreen Logic
+  fullscreenBtn.addEventListener('click', () => {
+    if (!document.fullscreenElement) {
+      workspaceSect.requestFullscreen().catch(err => {
+        console.error(`Error attempting to enable fullscreen: ${err.message}`);
+      });
+    } else {
+      document.exitFullscreen();
+    }
+  });
+
+  // Handle Resize after fullscreen
+  function resizeCanvas() {
+    let imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    canvas.width = canvas.offsetWidth;
+    canvas.height = canvas.offsetHeight;
+    ctx.putImageData(imgData, 0, 0);
+  }
+  
+  window.addEventListener('resize', () => { setTimeout(resizeCanvas, 100); });
+
+  // Color Swatches Logic
+  colorSwatches.forEach(swatch => {
+    swatch.addEventListener('click', () => {
+      strokeColor = swatch.getAttribute('data-color');
+      colorPicker.value = strokeColor;
+      colorSwatches.forEach(s => s.classList.remove('active'));
+      swatch.classList.add('active');
+      if (currentTool === 'eraser') {
+        penBtn.click();
+      }
+    });
+  });
+
   Object.keys(toolsBtns).forEach(toolId => {
     toolsBtns[toolId].addEventListener('click', () => {
       currentTool = toolId;
@@ -227,6 +352,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       isDrawing = false;
       ctx.closePath();
+      saveState();
     }
   }
 
@@ -237,6 +363,7 @@ document.addEventListener('DOMContentLoaded', () => {
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     strokes = [];
     currentStroke = [];
+    saveState();
   });
 
   // Mock songs DB
@@ -307,8 +434,10 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function createSongElement(song) {
+    const safeTitle = song.title.replace(/'/g, "\\'");
+    const safeArtist = song.artist.replace(/'/g, "\\'");
     return `
-      <li class="song-item">
+      <li class="song-item" onclick="playGlobalSong('${safeTitle}', '${safeArtist}')">
         <div class="song-icon">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: white;"><path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle></svg>
         </div>
@@ -322,6 +451,63 @@ document.addEventListener('DOMContentLoaded', () => {
       </li>
     `;
   }
+
+  // Global Music Player Logic
+  const globalPlayer = document.getElementById('global-music-player');
+  const npTitle = document.getElementById('now-playing-title');
+  const npArtist = document.getElementById('now-playing-artist');
+  const playerPlayBtn = document.getElementById('player-play');
+  const playerProgress = document.getElementById('player-progress');
+  const timeCurrent = document.getElementById('player-time-current');
+  const timeTotal = document.getElementById('player-time-total');
+  
+  let currentMusicTimer = null;
+  let isPlaying = false;
+  let songProgress = 0;
+  let songDuration = 210; // 3:30 mockup
+
+  function formatTime(sec) {
+    let MathFloorSec = Math.floor(sec);
+    let m = Math.floor(MathFloorSec / 60);
+    let s = Math.floor(MathFloorSec % 60);
+    return m + ':' + (s < 10 ? '0' : '') + s;
+  }
+
+  window.playGlobalSong = function(title, artist) {
+    globalPlayer.classList.remove('hidden');
+    npTitle.textContent = title;
+    npArtist.textContent = artist;
+    isPlaying = true;
+    songProgress = 0;
+    playerProgress.value = 0;
+    timeCurrent.textContent = "0:00";
+    timeTotal.textContent = formatTime(songDuration);
+    
+    playerPlayBtn.innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>';
+    
+    clearInterval(currentMusicTimer);
+    currentMusicTimer = setInterval(() => {
+      if (isPlaying && songProgress < songDuration) {
+        songProgress++;
+        playerProgress.value = (songProgress / songDuration) * 100;
+        timeCurrent.textContent = formatTime(songProgress);
+      }
+    }, 1000);
+  };
+
+  playerPlayBtn.addEventListener('click', () => {
+    isPlaying = !isPlaying;
+    if(isPlaying) {
+      playerPlayBtn.innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>';
+    } else {
+      playerPlayBtn.innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>';
+    }
+  });
+
+  playerProgress.addEventListener('input', (e) => {
+    songProgress = (e.target.value / 100) * songDuration;
+    timeCurrent.textContent = formatTime(songProgress);
+  });
 
   // Auth Modal Logic
   const authModal = document.getElementById('auth-modal');
