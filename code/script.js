@@ -15,6 +15,9 @@ document.addEventListener('DOMContentLoaded', () => {
   let strokeColor = '#000000';
   let lineWidth = 4;
   
+  let currentStroke = [];
+  let strokes = [];
+  
   // Tools
   const penBtn = document.getElementById('pen-btn');
   const eraserBtn = document.getElementById('eraser-btn');
@@ -66,6 +69,9 @@ document.addEventListener('DOMContentLoaded', () => {
   function startDrawing(e) {
     isDrawing = true;
     const pos = getMousePos(e);
+    if (currentTool === 'pen') {
+      currentStroke = [{x: pos.x, y: pos.y}];
+    }
     ctx.beginPath();
     ctx.moveTo(pos.x, pos.y);
     ctx.lineCap = 'round';
@@ -77,13 +83,22 @@ document.addEventListener('DOMContentLoaded', () => {
   function draw(e) {
     if (!isDrawing) return;
     const pos = getMousePos(e);
+    if (currentTool === 'pen') {
+      currentStroke.push({x: pos.x, y: pos.y});
+    }
     ctx.lineTo(pos.x, pos.y);
     ctx.stroke();
   }
 
   function stopDrawing() {
-    isDrawing = false;
-    ctx.closePath();
+    if (isDrawing) {
+      if (currentTool === 'pen' && currentStroke.length > 0) {
+        strokes.push(currentStroke);
+        currentStroke = [];
+      }
+      isDrawing = false;
+      ctx.closePath();
+    }
   }
 
   // Tool changing
@@ -102,6 +117,8 @@ document.addEventListener('DOMContentLoaded', () => {
   clearBtn.addEventListener('click', () => {
     ctx.fillStyle = '#ffffff';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
+    strokes = [];
+    currentStroke = [];
   });
 
   // Mock songs DB
@@ -134,6 +151,105 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const emotions = ['happy', 'sad', 'angry', 'neutral'];
 
+  // Auth Modal Logic
+  const authModal = document.getElementById('auth-modal');
+  const loginBtn = document.getElementById('login-btn');
+  const signupBtn = document.getElementById('signup-btn');
+  const closeModalBtn = document.getElementById('close-modal-btn');
+  const modalTitle = document.getElementById('modal-title');
+  const formSubmitBtn = document.getElementById('form-submit-btn');
+  const authSwitchText = document.getElementById('auth-switch-text');
+  const authSwitchLink = document.getElementById('auth-switch-link');
+  const authForm = document.getElementById('auth-form');
+
+  let isLoginView = true;
+
+  function setAuthView(isLogin) {
+    isLoginView = isLogin;
+    if (isLogin) {
+      modalTitle.textContent = 'Log In';
+      formSubmitBtn.textContent = 'Log In';
+      authSwitchText.textContent = "Don't have an account?";
+      authSwitchLink.textContent = 'Sign Up';
+    } else {
+      modalTitle.textContent = 'Sign Up';
+      formSubmitBtn.textContent = 'Sign Up';
+      authSwitchText.textContent = "Already have an account?";
+      authSwitchLink.textContent = 'Log In';
+    }
+  }
+
+  function openModal(isLogin) {
+    setAuthView(isLogin);
+    authModal.classList.remove('hidden');
+    document.body.style.overflow = 'hidden'; // Prevent background scrolling
+  }
+
+  function closeModal() {
+    authModal.classList.add('hidden');
+    document.body.style.overflow = '';
+  }
+
+  loginBtn.addEventListener('click', () => openModal(true));
+  signupBtn.addEventListener('click', () => openModal(false));
+  closeModalBtn.addEventListener('click', closeModal);
+
+  // Close when clicking outside of modal content
+  authModal.addEventListener('click', (e) => {
+    if (e.target === authModal) {
+      closeModal();
+    }
+  });
+
+  authSwitchLink.addEventListener('click', (e) => {
+    e.preventDefault();
+    setAuthView(!isLoginView);
+  });
+
+  authForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    // In a real app, this would handle actual authentication
+    const action = isLoginView ? 'logged in' : 'signed up';
+    alert(`Successfully ${action}!`);
+    closeModal();
+  });
+
+  function analyzeEmotion() {
+    if (strokes.length === 0) return 'neutral';
+    
+    // Find the lowest stroke (likely the mouth)
+    let lowestStroke = null;
+    let maxAvgY = 0;
+    
+    for (const stroke of strokes) {
+      if (stroke.length < 5) continue; // ignore dots
+      let sumY = 0;
+      for (const point of stroke) { sumY += point.y; }
+      let avgY = sumY / stroke.length;
+      if (avgY > maxAvgY) {
+        maxAvgY = avgY;
+        lowestStroke = stroke;
+      }
+    }
+    
+    if (!lowestStroke) return 'neutral';
+    
+    const startY = lowestStroke[0].y;
+    const endY = lowestStroke[lowestStroke.length - 1].y;
+    const middleIdx = Math.floor(lowestStroke.length / 2);
+    const midY = lowestStroke[middleIdx].y;
+    const endAvgY = (startY + endY) / 2;
+    
+    // Check for angry (sharp angles or many strokes)
+    if (strokes.length > 7) return 'angry';
+    
+    // Higher Y is lower on the canvas
+    if (midY > endAvgY + 15) return 'happy'; // U-shape (smile)
+    if (midY < endAvgY - 15) return 'sad'; // inverted U-shape (frown)
+    
+    return 'neutral';
+  }
+
   // Submit Logic
   submitBtn.addEventListener('click', () => {
     // 1. Get image data from canvas
@@ -146,10 +262,10 @@ document.addEventListener('DOMContentLoaded', () => {
     resultView.classList.add('hidden');
     loadingView.classList.remove('hidden');
 
-    // Simulate Network Request and ML processing (2 seconds delay)
+    // Simulate Network Request and ML processing (1.5 seconds delay)
     setTimeout(() => {
-      // Pick random emotion for demo purposes
-      const predictedEmotion = emotions[Math.floor(Math.random() * emotions.length)];
+      // Use heuristic stroke analysis for accurate prediction
+      const predictedEmotion = analyzeEmotion();
       
       // Update UI
       loadingView.classList.add('hidden');

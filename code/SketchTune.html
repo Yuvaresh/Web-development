@@ -9,8 +9,16 @@
 </head>
 <body>
   <header>
-    <h1>Sketch Tunes</h1>
-    <p>Draw your mood. Let AI find the perfect soundtrack.</p>
+    <div class="header-content">
+      <div class="title-container">
+        <h1>Sketch Tunes</h1>
+        <p>Draw your mood. Let AI find the perfect soundtrack.</p>
+      </div>
+      <div class="auth-buttons">
+        <button id="login-btn" class="btn">Log In</button>
+        <button id="signup-btn" class="btn btn-primary">Sign Up</button>
+      </div>
+    </div>
   </header>
 
   <main class="container">
@@ -22,7 +30,7 @@
         <div class="tools">
           <button id="pen-btn" class="btn active">Pen</button>
           <button id="eraser-btn" class="btn">Eraser</button>
-        </div>
+        </div>  
         <button id="clear-btn" class="btn btn-danger">Clear</button>
       </div>
 
@@ -63,6 +71,50 @@
       </div>
     </section>
   </main>
+
+  <!-- Auth Modal -->
+  <div id="auth-modal" class="modal hidden">
+    <div class="modal-content card">
+      <span class="close-btn" id="close-modal-btn">&times;</span>
+      <h2 id="modal-title">Log In</h2>
+      
+      <div class="social-login">
+        <button class="social-btn google-btn">
+          <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/google/google-original.svg" alt="Google" width="20">
+          Continue with Google
+        </button>
+        <button class="social-btn apple-btn">
+          <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/apple/apple-original.svg" alt="Apple" width="20" class="filter-white">
+          Continue with Apple
+        </button>
+        <button class="social-btn microsoft-btn">
+          <img src="D:\Projects\Sketch Tunes\Web-development\img\microsoft-icon.png" alt="Microsoft" width="20">
+          Continue with Microsoft
+        </button>
+      </div>
+
+      <div class="divider">
+        <span>or</span>
+      </div>
+
+      <form id="auth-form">
+        <div class="input-group">
+          <label for="email">Email</label>
+          <input type="email" id="email" required placeholder="Enter your email">
+        </div>
+        <div class="input-group">
+          <label for="password">Password</label>
+          <input type="password" id="password" required placeholder="Enter your password">
+        </div>
+        <button type="submit" class="btn btn-primary full-width" id="form-submit-btn">Log In</button>
+      </form>
+      
+      <p class="auth-switch">
+        <span id="auth-switch-text">Don't have an account?</span>
+        <a href="#" id="auth-switch-link">Sign Up</a>
+      </p>
+    </div>
+  </div>
 
   <script src="script.js"></script>
 </body>
