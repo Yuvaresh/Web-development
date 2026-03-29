@@ -36,6 +36,16 @@ document.addEventListener('DOMContentLoaded', () => {
   // Save initial blank state
   setTimeout(saveState, 50);
 
+  const redoBtn = document.getElementById('redo-btn');
+  if (redoBtn) {
+    redoBtn.addEventListener('click', () => {
+      if (historyIndex < historyState.length - 1) {
+        historyIndex++;
+        ctx.putImageData(historyState[historyIndex], 0, 0);
+      }
+    });
+  }
+
   // Navigations
   const navHome = document.getElementById('nav-home');
   const navMusics = document.getElementById('nav-musics');
@@ -88,11 +98,6 @@ document.addEventListener('DOMContentLoaded', () => {
   navTrending.addEventListener('click', (e) => { e.preventDefault(); switchView(navTrending, trendingView); renderMusicsLists(); });
 
   // Tools
-  const penBtn = document.getElementById('pen-btn');
-  const eraserBtn = document.getElementById('eraser-btn');
-  const fillBtn = document.getElementById('fill-btn');
-  const rectBtn = document.getElementById('rect-btn');
-  const circleBtn = document.getElementById('circle-btn');
   const clearBtn = document.getElementById('clear-btn');
   const colorPicker = document.getElementById('color-picker');
   const brushSize = document.getElementById('brush-size');
@@ -103,7 +108,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const undoBtn = document.getElementById('undo-btn');
   const downloadBtn = document.getElementById('download-btn');
-  const toolsBtns = { 'pen': penBtn, 'eraser': eraserBtn, 'fill': fillBtn, 'rect': rectBtn, 'circle': circleBtn };
+  
+  const toolsBtns = {};
+  document.querySelectorAll('.btn[title]').forEach(btn => {
+    const title = btn.getAttribute('title').toLowerCase();
+    const systemTitles = ['undo step', 'redo step', 'download image', 'clear canvas', 'crop', 'resize', 'rotate', 'flip'];
+    if (!systemTitles.includes(title)) {
+      toolsBtns[title] = btn;
+    }
+  });
+
+  // Handle color swatch matching Color 1
+  const color1Swatch = document.querySelector('.color-swatch[title="Color 1"]');
 
   undoBtn.addEventListener('click', () => {
     if (historyIndex <= 0) {
@@ -173,28 +189,33 @@ document.addEventListener('DOMContentLoaded', () => {
   // Color Swatches Logic
   colorSwatches.forEach(swatch => {
     swatch.addEventListener('click', () => {
-      strokeColor = swatch.getAttribute('data-color');
-      colorPicker.value = strokeColor;
-      colorSwatches.forEach(s => s.classList.remove('active'));
-      swatch.classList.add('active');
-      if (currentTool === 'eraser') {
-        penBtn.click();
+      const color = swatch.getAttribute('data-color');
+      if (color) {
+        strokeColor = color;
+        colorPicker.value = color;
+        if (color1Swatch) {
+           color1Swatch.dataset.color = color;
+           color1Swatch.style.backgroundColor = color;
+        }
+        colorSwatches.forEach(s => s.classList.remove('active'));
+        swatch.classList.add('active');
       }
     });
   });
 
-  Object.keys(toolsBtns).forEach(toolId => {
-    toolsBtns[toolId].addEventListener('click', () => {
-      currentTool = toolId;
+  Object.keys(toolsBtns).forEach(toolTitle => {
+    toolsBtns[toolTitle].addEventListener('click', () => {
+      currentTool = toolTitle;
       Object.values(toolsBtns).forEach(btn => btn.classList.remove('active'));
-      toolsBtns[toolId].classList.add('active');
+      toolsBtns[toolTitle].classList.add('active');
     });
   });
 
   colorPicker.addEventListener('input', (e) => {
     strokeColor = e.target.value;
-    if (currentTool === 'eraser') {
-      penBtn.click();
+    if (color1Swatch) {
+       color1Swatch.dataset.color = strokeColor;
+       color1Swatch.style.backgroundColor = strokeColor;
     }
   });
 
@@ -286,27 +307,119 @@ document.addEventListener('DOMContentLoaded', () => {
     draw(e);
   }
 
+  function drawShape(ctx, shape, sx, sy, ex, ey) {
+    ctx.beginPath();
+    const w = ex - sx;
+    const h = ey - sy;
+    switch (shape) {
+      case 'line':
+        ctx.moveTo(sx, sy);
+        ctx.lineTo(ex, ey);
+        break;
+      case 'selection': // draw dashed box
+        ctx.setLineDash([5, 5]);
+        ctx.rect(sx, sy, w, h);
+        break;
+      case 'rectangle':
+        ctx.rect(sx, sy, w, h);
+        break;
+      case 'circle':
+      case 'oval':
+        ctx.ellipse(sx + w/2, sy + h/2, Math.abs(w/2), Math.abs(h/2), 0, 0, 2 * Math.PI);
+        break;
+      case 'rounded rectangle':
+        const r = Math.min(Math.abs(w), Math.abs(h)) * 0.2;
+        if(ctx.roundRect) {
+            ctx.roundRect(sx, sy, w, h, r);
+        } else {
+            ctx.rect(sx, sy, w, h); // Fallback
+        }
+        break;
+      case 'triangle':
+        ctx.moveTo(sx + w/2, sy); ctx.lineTo(ex, ey); ctx.lineTo(sx, ey); ctx.closePath();
+        break;
+      case 'right triangle':
+        ctx.moveTo(sx, sy); ctx.lineTo(sx, ey); ctx.lineTo(ex, ey); ctx.closePath();
+        break;
+      case 'diamond':
+        ctx.moveTo(sx + w/2, sy); ctx.lineTo(ex, sy + h/2); ctx.lineTo(sx + w/2, ey); ctx.lineTo(sx, sy + h/2); ctx.closePath();
+        break;
+      case 'pentagon':
+        for (let i = 0; i < 5; i++) {
+          ctx.lineTo(sx + w/2 + w/2 * Math.sin(i * 2 * Math.PI / 5), sy + h/2 - h/2 * Math.cos(i * 2 * Math.PI / 5));
+        }
+        ctx.closePath();
+        break;
+      case 'hexagon':
+        for (let i = 0; i < 6; i++) {
+          ctx.lineTo(sx + w/2 + w/2 * Math.sin(i * 2 * Math.PI / 6), sy + h/2 - h/2 * Math.cos(i * 2 * Math.PI / 6));
+        }
+        ctx.closePath();
+        break;
+      case 'heart':
+        ctx.moveTo(sx + w/2, sy + h/4);
+        ctx.bezierCurveTo(sx + w/2, sy, sx, sy, sx, sy + h/2);
+        ctx.bezierCurveTo(sx, sy + h*0.8, sx + w/2, ey, sx + w/2, ey);
+        ctx.bezierCurveTo(sx + w/2, ey, ex, sy + h*0.8, ex, sy + h/2);
+        ctx.bezierCurveTo(ex, sy, sx + w/2, sy, sx + w/2, sy + h/4);
+        break;
+      default: // other complex shapes default to ellipse for now
+        ctx.ellipse(sx + w/2, sy + h/2, Math.abs(w/2), Math.abs(h/2), 0, 0, 2 * Math.PI);
+    }
+  }
+
   function startDrawing(e) {
-    isDrawing = true;
     const pos = getMousePos(e);
     startX = Math.floor(pos.x);
     startY = Math.floor(pos.y);
     
-    if (currentTool === 'pen') {
+    if (currentTool === 'color picker') {
+      const pData = ctx.getImageData(startX, startY, 1, 1).data;
+      const hex = "#" + ("000000" + ((pData[0] << 16) | (pData[1] << 8) | pData[2]).toString(16)).slice(-6);
+      strokeColor = hex;
+      colorPicker.value = hex;
+      if (color1Swatch) { color1Swatch.style.backgroundColor = hex; color1Swatch.dataset.color = hex; }
+      return;
+    }
+    if (currentTool === 'text') {
+      const text = prompt('Enter text:');
+      if (text) {
+        ctx.font = `${lineWidth * 5}px Inter, sans-serif`;
+        ctx.fillStyle = strokeColor;
+        ctx.fillText(text, startX, startY);
+        saveState();
+      }
+      return;
+    }
+    if (currentTool === 'magnifier') {
+       if (canvas.style.transform === 'scale(2)') {
+          canvas.style.transform = 'scale(1)';
+       } else {
+          canvas.style.transform = 'scale(2)';
+          canvas.style.transformOrigin = `${startX}px ${startY}px`;
+       }
+       return;
+    }
+
+    isDrawing = true;
+    
+    if (currentTool === 'pencil') {
       currentStroke = [{x: pos.x, y: pos.y, color: strokeColor}];
     }
     
-    if (currentTool === 'fill') {
+    if (currentTool === 'fill with color') {
       floodFill(startX, startY, strokeColor);
       let pStroke = [];
       for(let i=0; i<30; i++) pStroke.push({x: startX, y: startY, color: strokeColor});
-      strokes.push(pStroke); // Add fake stroke for emotion analyzer color weighting
+      strokes.push(pStroke); 
       isDrawing = false;
+      saveState();
       return;
     }
 
     snapshot = ctx.getImageData(0, 0, canvas.width, canvas.height);
     
+    ctx.setLineDash([]); // Reset dash
     ctx.beginPath();
     ctx.moveTo(pos.x, pos.y);
     ctx.lineCap = 'round';
@@ -320,32 +433,26 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!isDrawing) return;
     const pos = getMousePos(e);
     
-    if (currentTool === 'pen' || currentTool === 'eraser') {
-      if (currentTool === 'pen') {
+    if (currentTool === 'pencil' || currentTool === 'eraser') {
+      if (currentTool === 'pencil') {
          currentStroke.push({x: pos.x, y: pos.y, color: strokeColor});
       }
       ctx.lineTo(pos.x, pos.y);
       ctx.stroke();
-    } else if (currentTool === 'rect') {
+    } else {
       ctx.putImageData(snapshot, 0, 0);
-      ctx.beginPath();
-      ctx.rect(startX, startY, pos.x - startX, pos.y - startY);
+      drawShape(ctx, currentTool, startX, startY, pos.x, pos.y);
       ctx.stroke();
-    } else if (currentTool === 'circle') {
-      ctx.putImageData(snapshot, 0, 0);
-      ctx.beginPath();
-      const radius = Math.sqrt(Math.pow(pos.x - startX, 2) + Math.pow(pos.y - startY, 2));
-      ctx.arc(startX, startY, radius, 0, 2 * Math.PI);
-      ctx.stroke();
+      ctx.setLineDash([]); // Reset dash for subsequent draws
     }
   }
 
   function stopDrawing() {
     if (isDrawing) {
-      if (currentTool === 'pen' && currentStroke.length > 0) {
+      if (currentTool === 'pencil' && currentStroke.length > 0) {
         strokes.push(currentStroke);
         currentStroke = [];
-      } else if (currentTool === 'rect' || currentTool === 'circle') {
+      } else if (currentTool !== 'pencil' && currentTool !== 'eraser') {
         const dummyStrokes = [];
         for (let i=0; i<30; i++) dummyStrokes.push({x: startX, y: startY, color: strokeColor});
         strokes.push(dummyStrokes);

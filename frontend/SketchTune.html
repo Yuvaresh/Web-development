@@ -43,33 +43,145 @@
         <button id="fullscreen-btn" class="btn btn-primary" style="padding: 0.5rem 1rem; width: auto;" title="Full Screen">⛶</button>
       </div>
 
-      <div class="color-palette">
-        <button class="color-swatch active" style="background-color: #000000;" data-color="#000000" title="Black"></button>
-        <button class="color-swatch" style="background-color: #ff0000;" data-color="#ff0000" title="Red"></button>
-        <button class="color-swatch" style="background-color: #ff9900;" data-color="#ff9900" title="Orange"></button>
-        <button class="color-swatch" style="background-color: #ffff00;" data-color="#ffff00" title="Yellow"></button>
-        <button class="color-swatch" style="background-color: #00cc00;" data-color="#00cc00" title="Green"></button>
-        <button class="color-swatch" style="background-color: #0066ff;" data-color="#0066ff" title="Blue"></button>
-        <button class="color-swatch" style="background-color: #9900ff;" data-color="#9900ff" title="Purple"></button>
-        <button class="color-swatch" style="background-color: #ffffff; border: 1px solid #ccc;" data-color="#ffffff" title="White"></button>
-      </div>
+      <div class="paint-ribbon" style="display: flex; gap: 1rem; align-items: flex-start; padding: 1rem; background: var(--surface-dark); border: 1px solid var(--glass-border); border-radius: 12px; margin-bottom: 1.5rem; overflow-x: auto;">
+        
+        <!-- Selection -->
+        <div class="ribbon-group" style="display: flex; flex-direction: column; align-items: center; gap: 0.5rem; border-right: 1px solid var(--glass-border); padding-right: 1rem; min-width: max-content;">
+          <button id="select-btn" class="btn" title="Selection" style="padding: 0.8rem; font-size: 1.5rem; border-style: dashed;">⬚</button>
+          <span style="font-size: 0.75rem; color: var(--text-muted);">Selection</span>
+        </div>
 
-      <div class="toolbar">
-        <div class="tools">
-          <button id="pen-btn" class="btn active" title="Pen">✏️</button>
-          <button id="eraser-btn" class="btn" title="Eraser">🧽</button>
-          <button id="fill-btn" class="btn" title="Fill Bucket">🪣</button>
-          <button id="rect-btn" class="btn" title="Rectangle">🟩</button>
-          <button id="circle-btn" class="btn" title="Circle">⭕</button>
-          <button id="undo-btn" class="btn" title="Undo Step">↩️</button>
-          <button id="download-btn" class="btn" title="Download Image">💾</button>
-          
-          <div class="tool-options">
-            <input type="color" id="color-picker" value="#000000" class="color-picker" title="Choose Color">
-            <input type="range" id="brush-size" min="1" max="50" value="4" class="brush-size" title="Brush Size">
+        <!-- Tools -->
+        <div class="ribbon-group" style="display: flex; flex-direction: column; align-items: center; gap: 0.2rem; border-right: 1px solid var(--glass-border); padding-right: 1rem; min-width: max-content;">
+          <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.3rem;">
+            <button id="pen-btn" class="btn active" style="padding: 0.4rem;" title="Pencil">✏️</button>
+            <button id="fill-btn" class="btn" style="padding: 0.4rem;" title="Fill with color">🪣</button>
+            <button id="text-btn" class="btn" style="padding: 0.4rem;" title="Text">A</button>
+            <button id="eraser-btn" class="btn" style="padding: 0.4rem;" title="Eraser">🧽</button>
+            <button id="picker-btn" class="btn" style="padding: 0.4rem;" title="Color picker">💧</button>
+            <button id="zoom-btn" class="btn" style="padding: 0.4rem;" title="Magnifier">🔍</button>
           </div>
-        </div>  
-        <button id="clear-btn" class="btn btn-danger">Clear</button>
+          <span style="font-size: 0.75rem; color: var(--text-muted); margin-top: auto;">Tools</span>
+        </div>
+
+        <!-- Brushes -->
+        <div class="ribbon-group" style="display: flex; flex-direction: column; align-items: center; gap: 0.5rem; border-right: 1px solid var(--glass-border); padding-right: 1rem; min-width: max-content;">
+          <button id="brushes-btn" class="btn" style="padding: 0.8rem 0.5rem; display: flex; flex-direction: column; align-items: center; gap: 0.5rem;" title="Brushes">
+            🖌️
+          </button>
+          <span style="font-size: 0.75rem; color: var(--text-muted);">Brushes</span>
+        </div>
+
+        <!-- Shapes -->
+        <div class="ribbon-group" style="display: flex; flex-direction: column; align-items: center; gap: 0.5rem; border-right: 1px solid var(--glass-border); padding-right: 1rem; min-width: max-content;">
+          <div style="display: flex; gap: 0.5rem;">
+            <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 0.2rem; background: rgba(0,0,0,0.2); padding: 0.4rem; border-radius: 8px;">
+              <button class="btn" style="padding: 0.2rem; min-width: 25px;" title="Line">\</button>
+              <button class="btn" style="padding: 0.2rem; min-width: 25px;" title="Curve">~</button>
+              <button id="circle-btn" class="btn" style="padding: 0.2rem; min-width: 25px;" title="Oval">⭕</button>
+              <button id="rect-btn" class="btn" style="padding: 0.2rem; min-width: 25px;" title="Rectangle">🟩</button>
+              <button class="btn" style="padding: 0.2rem; min-width: 25px;" title="Rounded Rectangle">🔲</button>
+              <button class="btn" style="padding: 0.2rem; min-width: 25px;" title="Polygon">⬟</button>
+              <button class="btn" style="padding: 0.2rem; min-width: 25px;" title="Triangle">🔺</button>
+              
+              <button class="btn" style="padding: 0.2rem; min-width: 25px;" title="Right Triangle">📐</button>
+              <button class="btn" style="padding: 0.2rem; min-width: 25px;" title="Diamond">♦</button>
+              <button class="btn" style="padding: 0.2rem; min-width: 25px;" title="Pentagon">⬠</button>
+              <button class="btn" style="padding: 0.2rem; min-width: 25px;" title="Hexagon">⬡</button>
+              <button class="btn" style="padding: 0.2rem; min-width: 25px;" title="Right arrow">⇨</button>
+              <button class="btn" style="padding: 0.2rem; min-width: 25px;" title="Left arrow">⇦</button>
+              <button class="btn" style="padding: 0.2rem; min-width: 25px;" title="Up arrow">⇧</button>
+              
+              <button class="btn" style="padding: 0.2rem; min-width: 25px;" title="Down arrow">⇩</button>
+              <button class="btn" style="padding: 0.2rem; min-width: 25px;" title="4-point star">✨</button>
+              <button class="btn" style="padding: 0.2rem; min-width: 25px;" title="5-point star">⭐</button>
+              <button class="btn" style="padding: 0.2rem; min-width: 25px;" title="6-point star">✡</button>
+              <button class="btn" style="padding: 0.2rem; min-width: 25px;" title="Callout">💬</button>
+              <button class="btn" style="padding: 0.2rem; min-width: 25px;" title="Heart">❤️</button>
+              <button class="btn" style="padding: 0.2rem; min-width: 25px;" title="Lightning">⚡</button>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 0.3rem;">
+              <button class="btn" style="padding: 0.3rem 0.6rem; font-size: 0.8rem; text-align: left; width: 100%;">🔲 Outline</button>
+              <button class="btn" style="padding: 0.3rem 0.6rem; font-size: 0.8rem; text-align: left; width: 100%;">⬛ Fill</button>
+            </div>
+          </div>
+          <span style="font-size: 0.75rem; color: var(--text-muted);">Shapes</span>
+        </div>
+
+        <!-- Size -->
+        <div class="ribbon-group" style="display: flex; flex-direction: column; align-items: center; gap: 0.5rem; border-right: 1px solid var(--glass-border); padding-right: 1rem; min-width: max-content;">
+          <button class="btn" style="padding: 0.5rem; font-size: 1.2rem;" title="Size">≣</button>
+          <input type="range" id="brush-size" min="1" max="50" value="4" class="brush-size" title="Brush Size" style="width: 60px;">
+          <span style="font-size: 0.75rem; color: var(--text-muted); margin-top: auto;">Size</span>
+        </div>
+
+        <!-- Colours -->
+        <div class="ribbon-group" style="display: flex; flex-direction: column; align-items: center; gap: 0.5rem; border-right: 1px solid var(--glass-border); padding-right: 1rem; min-width: max-content;">
+          <div style="display: flex; gap: 0.8rem; align-items: center;">
+            <div style="display: flex; flex-direction: column; align-items: center; gap: 0.2rem;">
+              <div class="color-swatch active" style="background-color: #000000; width: 32px; height: 32px; border-radius: 50%; outline: 2px solid var(--primary-color);" title="Color 1" data-color="#000000"></div>
+              <span style="font-size: 0.65rem;">Color 1</span>
+            </div>
+            <div style="display: flex; flex-direction: column; align-items: center; gap: 0.2rem;">
+              <div class="color-swatch" style="background-color: #ffffff; width: 32px; height: 32px; border-radius: 50%;" title="Color 2" data-color="#ffffff"></div>
+              <span style="font-size: 0.65rem;">Color 2</span>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: repeat(10, 1fr); gap: 0.2rem; background: rgba(0,0,0,0.2); padding: 0.4rem; border-radius: 8px;">
+              <!-- Row 1 -->
+              <button class="color-swatch" style="background-color: #000000; width: 18px; height: 18px; border-radius: 50%; border: none;" data-color="#000000"></button>
+              <button class="color-swatch" style="background-color: #7f7f7f; width: 18px; height: 18px; border-radius: 50%; border: none;" data-color="#7f7f7f"></button>
+              <button class="color-swatch" style="background-color: #880015; width: 18px; height: 18px; border-radius: 50%; border: none;" data-color="#880015"></button>
+              <button class="color-swatch" style="background-color: #ed1c24; width: 18px; height: 18px; border-radius: 50%; border: none;" data-color="#ed1c24"></button>
+              <button class="color-swatch" style="background-color: #ff7f27; width: 18px; height: 18px; border-radius: 50%; border: none;" data-color="#ff7f27"></button>
+              <button class="color-swatch" style="background-color: #fff200; width: 18px; height: 18px; border-radius: 50%; border: none;" data-color="#fff200"></button>
+              <button class="color-swatch" style="background-color: #22b14c; width: 18px; height: 18px; border-radius: 50%; border: none;" data-color="#22b14c"></button>
+              <button class="color-swatch" style="background-color: #00a2e8; width: 18px; height: 18px; border-radius: 50%; border: none;" data-color="#00a2e8"></button>
+              <button class="color-swatch" style="background-color: #3f48cc; width: 18px; height: 18px; border-radius: 50%; border: none;" data-color="#3f48cc"></button>
+              <button class="color-swatch" style="background-color: #a349a4; width: 18px; height: 18px; border-radius: 50%; border: none;" data-color="#a349a4"></button>
+              <!-- Row 2 -->
+              <button class="color-swatch" style="background-color: #ffffff; width: 18px; height: 18px; border-radius: 50%; border: none;" data-color="#ffffff"></button>
+              <button class="color-swatch" style="background-color: #c3c3c3; width: 18px; height: 18px; border-radius: 50%; border: none;" data-color="#c3c3c3"></button>
+              <button class="color-swatch" style="background-color: #b97a57; width: 18px; height: 18px; border-radius: 50%; border: none;" data-color="#b97a57"></button>
+              <button class="color-swatch" style="background-color: #ffaec9; width: 18px; height: 18px; border-radius: 50%; border: none;" data-color="#ffaec9"></button>
+              <button class="color-swatch" style="background-color: #ffc90e; width: 18px; height: 18px; border-radius: 50%; border: none;" data-color="#ffc90e"></button>
+              <button class="color-swatch" style="background-color: #efe4b0; width: 18px; height: 18px; border-radius: 50%; border: none;" data-color="#efe4b0"></button>
+              <button class="color-swatch" style="background-color: #b5e61d; width: 18px; height: 18px; border-radius: 50%; border: none;" data-color="#b5e61d"></button>
+              <button class="color-swatch" style="background-color: #99d9ea; width: 18px; height: 18px; border-radius: 50%; border: none;" data-color="#99d9ea"></button>
+              <button class="color-swatch" style="background-color: #7092be; width: 18px; height: 18px; border-radius: 50%; border: none;" data-color="#7092be"></button>
+              <button class="color-swatch" style="background-color: #c8bfe7; width: 18px; height: 18px; border-radius: 50%; border: none;" data-color="#c8bfe7"></button>
+              <!-- Row 3 -->
+              <button class="color-swatch empty" style="background-color: transparent; border: 1px dashed var(--glass-border); width: 18px; height: 18px; border-radius: 50%;" data-color="transparent"></button>
+              <button class="color-swatch empty" style="background-color: transparent; border: 1px dashed var(--glass-border); width: 18px; height: 18px; border-radius: 50%;" data-color="transparent"></button>
+              <button class="color-swatch empty" style="background-color: transparent; border: 1px dashed var(--glass-border); width: 18px; height: 18px; border-radius: 50%;" data-color="transparent"></button>
+              <button class="color-swatch empty" style="background-color: transparent; border: 1px dashed var(--glass-border); width: 18px; height: 18px; border-radius: 50%;" data-color="transparent"></button>
+              <button class="color-swatch empty" style="background-color: transparent; border: 1px dashed var(--glass-border); width: 18px; height: 18px; border-radius: 50%;" data-color="transparent"></button>
+              <button class="color-swatch empty" style="background-color: transparent; border: 1px dashed var(--glass-border); width: 18px; height: 18px; border-radius: 50%;" data-color="transparent"></button>
+              <button class="color-swatch empty" style="background-color: transparent; border: 1px dashed var(--glass-border); width: 18px; height: 18px; border-radius: 50%;" data-color="transparent"></button>
+              <button class="color-swatch empty" style="background-color: transparent; border: 1px dashed var(--glass-border); width: 18px; height: 18px; border-radius: 50%;" data-color="transparent"></button>
+              <button class="color-swatch empty" style="background-color: transparent; border: 1px dashed var(--glass-border); width: 18px; height: 18px; border-radius: 50%;" data-color="transparent"></button>
+              <button class="color-swatch empty" style="background-color: transparent; border: 1px dashed var(--glass-border); width: 18px; height: 18px; border-radius: 50%;" data-color="transparent"></button>
+            </div>
+
+            <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.2rem; cursor: pointer;">
+              <div style="width: 32px; height: 32px; background: conic-gradient(red, yellow, lime, aqua, blue, magenta, red); border-radius: 50%; position: relative;">
+                <input type="color" id="color-picker" style="opacity: 0; position: absolute; width:100%; height:100%; cursor: pointer;" value="#000000">
+              </div>
+              <span style="font-size: 0.65rem;">Edit<br>colors</span>
+            </div>
+          </div>
+          <span style="font-size: 0.75rem; color: var(--text-muted); margin-top: auto;">Colours</span>
+        </div>
+
+        <!-- System -->
+        <div class="ribbon-group" style="display: flex; flex-direction: column; justify-content: center; gap: 0.4rem; min-width: max-content;">
+          <div style="display: flex; gap: 0.4rem;">
+            <button id="undo-btn" class="btn" style="padding: 0.4rem 0.6rem; font-size: 0.8rem;" title="Undo Step">↩️ Undo</button>
+            <button id="redo-btn" class="btn" style="padding: 0.4rem 0.6rem; font-size: 0.8rem;" title="Redo Step">↪️ Redo</button>
+          </div>
+          <button id="download-btn" class="btn" style="padding: 0.4rem 0.8rem; font-size: 0.8rem;" title="Download Image">💾 Save</button>
+          <button id="clear-btn" class="btn btn-danger" style="padding: 0.4rem 0.8rem; font-size: 0.8rem;" title="Clear Canvas">🗑️ Clear</button>
+        </div>
       </div>
 
       <div class="canvas-container" style="position: relative;">
