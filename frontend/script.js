@@ -1,20 +1,20 @@
 document.addEventListener('DOMContentLoaded', () => {
   const canvas = document.getElementById('drawing-canvas');
   const ctx = canvas.getContext('2d');
-  
+
   // Set explicit canvas size
   canvas.width = canvas.offsetWidth;
   canvas.height = canvas.offsetHeight;
-  
+
   // Initialize white background
   ctx.fillStyle = '#ffffff';
   ctx.fillRect(0, 0, canvas.width, canvas.height);
-  
+
   let isDrawing = false;
   let currentTool = 'pen'; // 'pen' or 'eraser'
   let strokeColor = '#000000';
   let lineWidth = 4;
-  
+
   let currentStroke = [];
   let strokes = [];
 
@@ -32,7 +32,7 @@ document.addEventListener('DOMContentLoaded', () => {
     historyState.push(ctx.getImageData(0, 0, canvas.width, canvas.height));
     historyIndex++;
   }
-  
+
   // Save initial blank state
   setTimeout(saveState, 50);
 
@@ -50,11 +50,11 @@ document.addEventListener('DOMContentLoaded', () => {
   const navHome = document.getElementById('nav-home');
   const navMusics = document.getElementById('nav-musics');
   const navTrending = document.getElementById('nav-trending');
-  
+
   const homeView = document.getElementById('home-view');
   const musicsView = document.getElementById('musics-view');
   const trendingView = document.getElementById('trending-view');
-  
+
   const allNavs = [navHome, navMusics, navTrending];
   const allViews = [homeView, musicsView, trendingView];
 
@@ -76,14 +76,14 @@ document.addEventListener('DOMContentLoaded', () => {
   const clearBtn = document.getElementById('clear-btn');
   const colorPicker = document.getElementById('color-picker');
   const brushSize = document.getElementById('brush-size');
-  
+
   const fullscreenBtn = document.getElementById('fullscreen-btn');
   const workspaceSect = document.querySelector('.workspace');
   const colorSwatches = document.querySelectorAll('.color-swatch');
 
   const undoBtn = document.getElementById('undo-btn');
   const downloadBtn = document.getElementById('download-btn');
-  
+
   const toolsBtns = {};
   document.querySelectorAll('.btn[title]').forEach(btn => {
     const title = btn.getAttribute('title').toLowerCase();
@@ -125,7 +125,7 @@ document.addEventListener('DOMContentLoaded', () => {
     isDarkMode = !isDarkMode;
     themeToggleBtn.style.transform = 'rotate(180deg) scale(0.5)';
     themeToggleBtn.style.opacity = '0';
-    
+
     setTimeout(() => {
       if (isDarkMode) {
         document.documentElement.removeAttribute('data-theme');
@@ -134,12 +134,12 @@ document.addEventListener('DOMContentLoaded', () => {
         document.documentElement.setAttribute('data-theme', 'light');
         themeToggleBtn.textContent = '☀️';
       }
-      
+
       themeToggleBtn.style.transform = 'rotate(0deg) scale(1)';
       themeToggleBtn.style.opacity = '1';
     }, 250);
   });
-  
+
   // Fullscreen Logic
   fullscreenBtn.addEventListener('click', () => {
     if (!document.fullscreenElement) {
@@ -158,7 +158,7 @@ document.addEventListener('DOMContentLoaded', () => {
     canvas.height = canvas.offsetHeight;
     ctx.putImageData(imgData, 0, 0);
   }
-  
+
   window.addEventListener('resize', () => { setTimeout(resizeCanvas, 100); });
 
   // Color Swatches Logic
@@ -169,8 +169,8 @@ document.addEventListener('DOMContentLoaded', () => {
         strokeColor = color;
         colorPicker.value = color;
         if (color1Swatch) {
-           color1Swatch.dataset.color = color;
-           color1Swatch.style.backgroundColor = color;
+          color1Swatch.dataset.color = color;
+          color1Swatch.style.backgroundColor = color;
         }
         colorSwatches.forEach(s => s.classList.remove('active'));
         swatch.classList.add('active');
@@ -189,14 +189,14 @@ document.addEventListener('DOMContentLoaded', () => {
   colorPicker.addEventListener('input', (e) => {
     strokeColor = e.target.value;
     if (color1Swatch) {
-       color1Swatch.dataset.color = strokeColor;
-       color1Swatch.style.backgroundColor = strokeColor;
+      color1Swatch.dataset.color = strokeColor;
+      color1Swatch.style.backgroundColor = strokeColor;
     }
   });
 
   function hexToRgba(hex) {
     let result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-    return result ? { r: parseInt(result[1], 16), g: parseInt(result[2], 16), b: parseInt(result[3], 16), a: 255 } : {r: 0, g: 0, b:0, a:255};
+    return result ? { r: parseInt(result[1], 16), g: parseInt(result[2], 16), b: parseInt(result[3], 16), a: 255 } : { r: 0, g: 0, b: 0, a: 255 };
   }
 
   function floodFill(startX, startY, fillColorHex) {
@@ -204,10 +204,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const colorLayer = ctx.getImageData(0, 0, canvas.width, canvas.height);
     const pixelData = colorLayer.data;
     const startPos = (startY * canvas.width + startX) * 4;
-    const startColor = { r: pixelData[startPos], g: pixelData[startPos+1], b: pixelData[startPos+2], a: pixelData[startPos+3] };
+    const startColor = { r: pixelData[startPos], g: pixelData[startPos + 1], b: pixelData[startPos + 2], a: pixelData[startPos + 3] };
     if (startColor.r === fillColor.r && startColor.g === fillColor.g && startColor.b === fillColor.b) return;
-    const matchStartColor = (pos) => (pixelData[pos] === startColor.r && pixelData[pos+1] === startColor.g && pixelData[pos+2] === startColor.b && pixelData[pos+3] === startColor.a);
-    const colorPixel = (pos) => { pixelData[pos] = fillColor.r; pixelData[pos+1] = fillColor.g; pixelData[pos+2] = fillColor.b; pixelData[pos+3] = fillColor.a; };
+    const matchStartColor = (pos) => (pixelData[pos] === startColor.r && pixelData[pos + 1] === startColor.g && pixelData[pos + 2] === startColor.b && pixelData[pos + 3] === startColor.a);
+    const colorPixel = (pos) => { pixelData[pos] = fillColor.r; pixelData[pos + 1] = fillColor.g; pixelData[pos + 2] = fillColor.b; pixelData[pos + 3] = fillColor.a; };
     const pixelStack = [[startX, startY]];
     while (pixelStack.length) {
       const newPos = pixelStack.pop();
@@ -235,24 +235,24 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     ctx.putImageData(colorLayer, 0, 0);
   }
-  
+
   brushSize.addEventListener('input', (e) => {
     lineWidth = e.target.value;
   });
-  
+
   // Results view elements
   const initialView = document.getElementById('initial-view');
   const loadingView = document.getElementById('loading-view');
   const resultView = document.getElementById('result-view');
   const emotionText = document.getElementById('emotion-text');
   const songList = document.getElementById('song-list');
-  
+
   // Event Listeners for Drawing
   canvas.addEventListener('mousedown', startDrawing);
   canvas.addEventListener('mousemove', draw);
   canvas.addEventListener('mouseup', stopDrawing);
   canvas.addEventListener('mouseout', stopDrawing);
-  
+
   // Touch support
   canvas.addEventListener('touchstart', handleTouchStart, { passive: false });
   canvas.addEventListener('touchmove', handleTouchMove, { passive: false });
@@ -260,7 +260,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function getMousePos(e) {
     const rect = canvas.getBoundingClientRect();
-    if(e.touches && e.touches.length > 0) {
+    if (e.touches && e.touches.length > 0) {
       return {
         x: e.touches[0].clientX - rect.left,
         y: e.touches[0].clientY - rect.top
@@ -300,46 +300,46 @@ document.addEventListener('DOMContentLoaded', () => {
         break;
       case 'circle':
       case 'oval':
-        ctx.ellipse(sx + w/2, sy + h/2, Math.abs(w/2), Math.abs(h/2), 0, 0, 2 * Math.PI);
+        ctx.ellipse(sx + w / 2, sy + h / 2, Math.abs(w / 2), Math.abs(h / 2), 0, 0, 2 * Math.PI);
         break;
       case 'rounded rectangle':
         const r = Math.min(Math.abs(w), Math.abs(h)) * 0.2;
-        if(ctx.roundRect) {
-            ctx.roundRect(sx, sy, w, h, r);
+        if (ctx.roundRect) {
+          ctx.roundRect(sx, sy, w, h, r);
         } else {
-            ctx.rect(sx, sy, w, h); // Fallback
+          ctx.rect(sx, sy, w, h); // Fallback
         }
         break;
       case 'triangle':
-        ctx.moveTo(sx + w/2, sy); ctx.lineTo(ex, ey); ctx.lineTo(sx, ey); ctx.closePath();
+        ctx.moveTo(sx + w / 2, sy); ctx.lineTo(ex, ey); ctx.lineTo(sx, ey); ctx.closePath();
         break;
       case 'right triangle':
         ctx.moveTo(sx, sy); ctx.lineTo(sx, ey); ctx.lineTo(ex, ey); ctx.closePath();
         break;
       case 'diamond':
-        ctx.moveTo(sx + w/2, sy); ctx.lineTo(ex, sy + h/2); ctx.lineTo(sx + w/2, ey); ctx.lineTo(sx, sy + h/2); ctx.closePath();
+        ctx.moveTo(sx + w / 2, sy); ctx.lineTo(ex, sy + h / 2); ctx.lineTo(sx + w / 2, ey); ctx.lineTo(sx, sy + h / 2); ctx.closePath();
         break;
       case 'pentagon':
         for (let i = 0; i < 5; i++) {
-          ctx.lineTo(sx + w/2 + w/2 * Math.sin(i * 2 * Math.PI / 5), sy + h/2 - h/2 * Math.cos(i * 2 * Math.PI / 5));
+          ctx.lineTo(sx + w / 2 + w / 2 * Math.sin(i * 2 * Math.PI / 5), sy + h / 2 - h / 2 * Math.cos(i * 2 * Math.PI / 5));
         }
         ctx.closePath();
         break;
       case 'hexagon':
         for (let i = 0; i < 6; i++) {
-          ctx.lineTo(sx + w/2 + w/2 * Math.sin(i * 2 * Math.PI / 6), sy + h/2 - h/2 * Math.cos(i * 2 * Math.PI / 6));
+          ctx.lineTo(sx + w / 2 + w / 2 * Math.sin(i * 2 * Math.PI / 6), sy + h / 2 - h / 2 * Math.cos(i * 2 * Math.PI / 6));
         }
         ctx.closePath();
         break;
       case 'heart':
-        ctx.moveTo(sx + w/2, sy + h/4);
-        ctx.bezierCurveTo(sx + w/2, sy, sx, sy, sx, sy + h/2);
-        ctx.bezierCurveTo(sx, sy + h*0.8, sx + w/2, ey, sx + w/2, ey);
-        ctx.bezierCurveTo(sx + w/2, ey, ex, sy + h*0.8, ex, sy + h/2);
-        ctx.bezierCurveTo(ex, sy, sx + w/2, sy, sx + w/2, sy + h/4);
+        ctx.moveTo(sx + w / 2, sy + h / 4);
+        ctx.bezierCurveTo(sx + w / 2, sy, sx, sy, sx, sy + h / 2);
+        ctx.bezierCurveTo(sx, sy + h * 0.8, sx + w / 2, ey, sx + w / 2, ey);
+        ctx.bezierCurveTo(sx + w / 2, ey, ex, sy + h * 0.8, ex, sy + h / 2);
+        ctx.bezierCurveTo(ex, sy, sx + w / 2, sy, sx + w / 2, sy + h / 4);
         break;
       default: // other complex shapes default to ellipse for now
-        ctx.ellipse(sx + w/2, sy + h/2, Math.abs(w/2), Math.abs(h/2), 0, 0, 2 * Math.PI);
+        ctx.ellipse(sx + w / 2, sy + h / 2, Math.abs(w / 2), Math.abs(h / 2), 0, 0, 2 * Math.PI);
     }
   }
 
@@ -347,7 +347,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const pos = getMousePos(e);
     startX = Math.floor(pos.x);
     startY = Math.floor(pos.y);
-    
+
     if (currentTool === 'color picker') {
       const pData = ctx.getImageData(startX, startY, 1, 1).data;
       const hex = "#" + ("000000" + ((pData[0] << 16) | (pData[1] << 8) | pData[2]).toString(16)).slice(-6);
@@ -367,33 +367,33 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
     if (currentTool === 'magnifier') {
-       if (canvas.style.transform === 'scale(2)') {
-          canvas.style.transform = 'scale(1)';
-       } else {
-          canvas.style.transform = 'scale(2)';
-          canvas.style.transformOrigin = `${startX}px ${startY}px`;
-       }
-       return;
+      if (canvas.style.transform === 'scale(2)') {
+        canvas.style.transform = 'scale(1)';
+      } else {
+        canvas.style.transform = 'scale(2)';
+        canvas.style.transformOrigin = `${startX}px ${startY}px`;
+      }
+      return;
     }
 
     isDrawing = true;
-    
+
     if (currentTool === 'pencil') {
-      currentStroke = [{x: pos.x, y: pos.y, color: strokeColor}];
+      currentStroke = [{ x: pos.x, y: pos.y, color: strokeColor }];
     }
-    
+
     if (currentTool === 'fill with color') {
       floodFill(startX, startY, strokeColor);
       let pStroke = [];
-      for(let i=0; i<30; i++) pStroke.push({x: startX, y: startY, color: strokeColor});
-      strokes.push(pStroke); 
+      for (let i = 0; i < 30; i++) pStroke.push({ x: startX, y: startY, color: strokeColor });
+      strokes.push(pStroke);
       isDrawing = false;
       saveState();
       return;
     }
 
     snapshot = ctx.getImageData(0, 0, canvas.width, canvas.height);
-    
+
     ctx.setLineDash([]); // Reset dash
     ctx.beginPath();
     ctx.moveTo(pos.x, pos.y);
@@ -407,10 +407,10 @@ document.addEventListener('DOMContentLoaded', () => {
   function draw(e) {
     if (!isDrawing) return;
     const pos = getMousePos(e);
-    
+
     if (currentTool === 'pencil' || currentTool === 'eraser') {
       if (currentTool === 'pencil') {
-         currentStroke.push({x: pos.x, y: pos.y, color: strokeColor});
+        currentStroke.push({ x: pos.x, y: pos.y, color: strokeColor });
       }
       ctx.lineTo(pos.x, pos.y);
       ctx.stroke();
@@ -429,7 +429,7 @@ document.addEventListener('DOMContentLoaded', () => {
         currentStroke = [];
       } else if (currentTool !== 'pencil' && currentTool !== 'eraser') {
         const dummyStrokes = [];
-        for (let i=0; i<30; i++) dummyStrokes.push({x: startX, y: startY, color: strokeColor});
+        for (let i = 0; i < 30; i++) dummyStrokes.push({ x: startX, y: startY, color: strokeColor });
         strokes.push(dummyStrokes);
       }
       isDrawing = false;
@@ -438,7 +438,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-// Removing old listeners
+  // Removing old listeners
 
   clearBtn.addEventListener('click', () => {
     ctx.fillStyle = '#ffffff';
@@ -494,7 +494,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const allList = document.getElementById('all-songs-list');
     const trendingList = document.getElementById('trending-songs-list');
     if (!allList || !trendingList) return;
-    
+
     if (allList.children.length === 0) {
       let allSongs = [];
       Object.values(mockPlaylists).forEach(playlist => {
@@ -542,7 +542,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const playerProgress = document.getElementById('player-progress');
   const timeCurrent = document.getElementById('player-time-current');
   const timeTotal = document.getElementById('player-time-total');
-  
+
   let currentMusicTimer = null;
   let isPlaying = false;
   let songProgress = 0;
@@ -555,7 +555,7 @@ document.addEventListener('DOMContentLoaded', () => {
     return m + ':' + (s < 10 ? '0' : '') + s;
   }
 
-  window.playGlobalSong = function(title, artist) {
+  window.playGlobalSong = function (title, artist) {
     globalPlayer.classList.remove('hidden');
     npTitle.textContent = title;
     npArtist.textContent = artist;
@@ -564,9 +564,9 @@ document.addEventListener('DOMContentLoaded', () => {
     playerProgress.value = 0;
     timeCurrent.textContent = "0:00";
     timeTotal.textContent = formatTime(songDuration);
-    
+
     playerPlayBtn.innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>';
-    
+
     clearInterval(currentMusicTimer);
     currentMusicTimer = setInterval(() => {
       if (isPlaying && songProgress < songDuration) {
@@ -579,7 +579,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   playerPlayBtn.addEventListener('click', () => {
     isPlaying = !isPlaying;
-    if(isPlaying) {
+    if (isPlaying) {
       playerPlayBtn.innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>';
     } else {
       playerPlayBtn.innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>';
@@ -616,7 +616,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const profileInitial = document.getElementById('profile-initial');
   const logoutBtn = document.getElementById('logout-btn');
   const changePhotoInput = document.getElementById('change-photo-input');
-  
+
   // Social Logins
   const socialBtns = document.querySelectorAll('.social-btn');
   socialBtns.forEach(btn => {
@@ -693,7 +693,7 @@ document.addEventListener('DOMContentLoaded', () => {
         reader.onload = (event) => {
           currentUser.photo = event.target.result;
           localStorage.setItem('currentUser', JSON.stringify(currentUser));
-          
+
           const userIndex = users.findIndex(u => u.email === currentUser.email);
           if (userIndex !== -1) {
             users[userIndex].photo = currentUser.photo;
@@ -709,7 +709,7 @@ document.addEventListener('DOMContentLoaded', () => {
   function loginUser(userData) {
     currentUser = userData;
     localStorage.setItem('currentUser', JSON.stringify(currentUser));
-    
+
     if (!users.find(u => u.email === currentUser.email)) {
       users.push(currentUser);
       localStorage.setItem('users', JSON.stringify(users));
@@ -722,7 +722,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (nameInput) nameInput.value = '';
     if (emailInput) emailInput.value = '';
     if (passwordInput) passwordInput.value = '';
-    
+
     if (isLogin) {
       if (modalTitle) modalTitle.textContent = 'Log In';
       if (formSubmitBtn) formSubmitBtn.textContent = 'Log In';
@@ -779,32 +779,52 @@ document.addEventListener('DOMContentLoaded', () => {
       e.preventDefault();
       const email = emailInput ? emailInput.value.trim() : '';
       const password = passwordInput ? passwordInput.value : '';
-      
+
       if (isLoginView) {
-        const userIndex = users.findIndex(u => u.email === email);
-        if (userIndex === -1) {
-          alert("You don't have an account. Redirecting to sign up page.");
-          setAuthView(false);
-        } else {
-          const foundUser = users[userIndex];
-          if (foundUser.password === password) {
-            loginUser(foundUser);
-            closeModal();
-          } else {
-            alert('Incorrect password!');
-          }
-        }
+        fetch("http://localhost:5000/login", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ email, password })
+        })
+          .then(res => res.json())
+          .then(data => {
+            if (data.user) {
+              alert("Login successful ✅");
+
+              // update UI
+              loginUser({
+                name: data.user.email.split("@")[0],
+                email: data.user.email,
+                photo: null
+              });
+
+              closeModal();
+            } else {
+              alert(data.message || "Login failed");
+            }
+          })
+          .catch(err => console.error(err));
       } else {
         if (users.find(u => u.email === email)) {
           alert("You already have an account. Redirecting to log in page.");
           setAuthView(true);
         } else {
-          const name = nameInput ? nameInput.value.trim() : 'User';
-          const newUser = { email, password, name, photo: null };
-          users.push(newUser);
-          localStorage.setItem('users', JSON.stringify(users));
-          loginUser(newUser);
-          closeModal();
+          fetch("http://localhost:5000/signup", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ email, password })
+          })
+            .then(res => res.json())
+            .then(data => {
+              console.log("Backend response:", data);
+              alert("Signup successful ✅");
+              closeModal();
+            })
+            .catch(err => console.error(err));
         }
       }
     });
@@ -812,37 +832,37 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function analyzeEmotion() {
     if (strokes.length === 0) return 'neutral';
-    
+
     // Theme logic based on colors
     let horrorScore = 0;
     let pleasantScore = 0;
-    
+
     for (const stroke of strokes) {
       if (stroke.length > 0) {
         const hColor = stroke[0].color || '#000000';
-        
+
         // Count red or dark colors for horror
         if (hColor === '#000000' || hColor.startsWith('#ff') || hColor.startsWith('#cc00') || hColor.startsWith('#8b00')) {
           horrorScore++;
         }
-        
+
         // Count green or blue colors for pleasant mountain/nature
         if (hColor.startsWith('#00ff') || hColor.startsWith('#0080') || hColor.startsWith('#0000ff') || hColor === '#4caf50' || hColor === '#2196f3' || hColor.startsWith('#32cd') || hColor.startsWith('#00cc')) {
           pleasantScore++;
         }
       }
     }
-    
+
     // If predominantly green/blue
     if (pleasantScore > 1 && pleasantScore >= horrorScore) return 'pleasant';
-    
+
     // If lots of black/red and jagged/messy lines
     if (strokes.length > 10 && horrorScore > 4) return 'horror';
-    
+
     // Standard facial heuristic
     let lowestStroke = null;
     let maxAvgY = 0;
-    
+
     for (const stroke of strokes) {
       if (stroke.length < 5) continue; // ignore dots
       let sumY = 0;
@@ -853,22 +873,22 @@ document.addEventListener('DOMContentLoaded', () => {
         lowestStroke = stroke;
       }
     }
-    
+
     if (!lowestStroke) return 'neutral';
-    
+
     const startY = lowestStroke[0].y;
     const endY = lowestStroke[lowestStroke.length - 1].y;
     const middleIdx = Math.floor(lowestStroke.length / 2);
     const midY = lowestStroke[middleIdx].y;
     const endAvgY = (startY + endY) / 2;
-    
+
     // Check for angry (sharp angles or many strokes)
     if (strokes.length > 7) return 'angry';
-    
+
     // Higher Y is lower on the canvas
     if (midY > endAvgY + 15) return 'happy'; // U-shape (smile)
     if (midY < endAvgY - 15) return 'sad'; // inverted U-shape (frown)
-    
+
     return 'neutral';
   }
 
@@ -894,7 +914,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initialView.classList.add('hidden');
     resultView.classList.add('hidden');
     loadingView.classList.remove('hidden');
-    
+
     // Show scan line on canvas
     const scanOverlay = document.getElementById('scan-overlay');
     if (scanOverlay) scanOverlay.classList.remove('hidden');
@@ -905,19 +925,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
       // Use heuristic stroke analysis for accurate prediction
       const predictedEmotion = analyzeEmotion();
-      
+
       // Update UI
       loadingView.classList.add('hidden');
       resultView.classList.remove('hidden');
-      
+
       // Update emotion text & styling
       emotionText.textContent = predictedEmotion.toUpperCase();
       emotionText.className = `emotion-tag ${predictedEmotion}`;
-      
+
       // Populate Playlist
       const playlist = mockPlaylists[predictedEmotion] || mockPlaylists['neutral'];
       songList.innerHTML = '';
-      
+
       playlist.forEach(song => {
         const li = document.createElement('li');
         li.className = 'song-item';
@@ -940,4 +960,17 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     }, 2000);
   });
+  //Test Backend Connection
+  async function testBackend() {
+    try {
+      const response = await fetch("http://localhost:5000");
+      const data = await response.text();
+      console.log("Backend says:", data);
+    } catch (error) {
+      console.error("Error connecting to backend:", error);
+    }
+  }
+
+  // Call it
+  testBackend();
 });
